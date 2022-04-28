@@ -9,14 +9,17 @@ import org.junit.Test;
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.awaitility.Awaitility.await;
 
 public class PwnedPasswordsValidatorTest {
 
     @Test
     public void constructorsShouldSetDefaultValues(){
         PwnedPasswordsValidator v = new PwnedPasswordsValidator();
-        Assert.assertEquals(true, v.shouldFailOnUnknownError());
+        Assert.assertTrue(v.shouldFailOnUnknownError());
         Assert.assertEquals(RateLimitExceededBehavior.RETRY, v.getRateLimitExceededBehavior());
         Assert.assertNull(v.getProxy());
     }
@@ -24,7 +27,7 @@ public class PwnedPasswordsValidatorTest {
     @Test
     public void constructorsShouldSetParameterValues(){
         PwnedPasswordsValidator v = new PwnedPasswordsValidator(false, RateLimitExceededBehavior.FAIL);
-        Assert.assertEquals(false, v.shouldFailOnUnknownError());
+        Assert.assertFalse(v.shouldFailOnUnknownError());
         Assert.assertEquals(RateLimitExceededBehavior.FAIL, v.getRateLimitExceededBehavior());
         Assert.assertNull(v.getProxy());
     }
@@ -33,7 +36,7 @@ public class PwnedPasswordsValidatorTest {
     public void constructorsShouldSetAllParameterValuesValues(){
         Proxy proxy = Proxy.NO_PROXY;
         PwnedPasswordsValidator v = new PwnedPasswordsValidator(false, RateLimitExceededBehavior.FAIL, proxy);
-        Assert.assertEquals(false, v.shouldFailOnUnknownError());
+        Assert.assertFalse(v.shouldFailOnUnknownError());
         Assert.assertEquals(RateLimitExceededBehavior.FAIL, v.getRateLimitExceededBehavior());
         Assert.assertEquals(Proxy.NO_PROXY, v.getProxy());
     }
@@ -143,20 +146,23 @@ public class PwnedPasswordsValidatorTest {
     }
 
     @Test
-    public void getResponseStatusPwned() throws InterruptedException {
+    public void getResponseStatusPwned() {
         PwnedPasswordsValidator v = new PwnedPasswordsValidator();
         Status s = v.getResponseStatus("secret123");
+        await().atMost(2, TimeUnit.SECONDS).until(v.getResponseStatus("secret123"));  // Compliant
         Assert.assertEquals(Status.PASSWORD_PWNED, s);
-        Thread.sleep(2000);
+
     }
 
     @Test
-    public void getResponseStatusForRandomPassword() throws InterruptedException {
+    public void getResponseStatusForRandomPassword() {
         PwnedPasswordsValidator v = new PwnedPasswordsValidator();
         Status s = v.getResponseStatus(UUID.randomUUID().toString() + UUID.randomUUID().toString());
+        await().atMost(2, TimeUnit.SECONDS).until(v.getResponseStatus("secret123"));  // Compliant
         Assert.assertEquals(Status.PASSWORD_OK, s);
-        Thread.sleep(2000);
     }
+
+
 
     @Test
     public void getProxy() {

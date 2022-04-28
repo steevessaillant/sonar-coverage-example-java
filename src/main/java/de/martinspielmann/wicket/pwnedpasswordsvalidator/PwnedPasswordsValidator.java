@@ -22,7 +22,7 @@ import java.security.NoSuchAlgorithmException;
  * Checks if a given password has been disclosed in a data breach using API of
  * <a href="https://haveibeenpwned.com/">https://haveibeenpwned.com/</a> More
  * details at <a href=
- * "https://haveibeenpwned.com/API/v2#PwnedPasswords">https://haveibeenpwned.com/API/v2#PwnedPasswords</a>
+ * "<a href="https://haveibeenpwned.com/API/v2#PwnedPasswords">https://haveibeenpwned.com/API/v2#PwnedPasswords</a>">https://haveibeenpwned.com/API/v2#PwnedPasswords</a>
  *
  * @author Martin Spielmann
  */
@@ -36,7 +36,7 @@ public class PwnedPasswordsValidator implements IValidator<String> {
 
 	private final boolean failOnUnknownError;
 	private final RateLimitExceededBehavior rateLimitExceededBehavior;
-	private final Proxy proxy;
+	private final transient Proxy proxy;
 
 	/**
 	 * Creates a new PwnedPasswordsValidator with default configuration. If an error
@@ -163,7 +163,7 @@ public class PwnedPasswordsValidator implements IValidator<String> {
             }
             // if there were results, check if your pw hash was pwned
             String result = IOUtils.toString(c.getInputStream(), StandardCharsets.UTF_8);
-            String lines[] = result.split("\\r?\\n");
+            String[] lines = result.split("\\r?\\n");
             String hashSuffix = getHashSuffix(pw);
             for(String line : lines) {
             	if(line.split(":")[0].equals(hashSuffix)) {
